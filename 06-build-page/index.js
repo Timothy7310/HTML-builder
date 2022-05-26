@@ -57,28 +57,31 @@ const createFolders =  async(pathName) => {
     });
 };
 
-const addComponents = async (pathTemplate, pathComponents) => {
-    let newHTML = await fsPromises.readFile(pathTemplate, 'utf-8');
+const addComponents = async (temaplateHTML,pathTemplate, pathComponents) => {
+    let newHTML = await fsPromises.readFile(temaplateHTML, 'utf-8');
 
     const componentArr = await fsPromises.readdir(pathComponents, {withFileTypes: true});
     console.log(componentArr);
-    componentArr.map( async(file) => {
-        if (file.isFile() && path.extname(file.name) === '.html') {
+  
+    for(let component of componentArr){
+        if (component.isFile() && path.extname(component.name) === '.html') {
             console.log('test');
-            const componentContent = await fsPromises.readFile(path.join(pathComponents, `${file.name}`), 'utf-8');
-            const fileName = path.basename(`${pathComponents}${path.sep}${file.name}`, path.extname(file.name));
+            const componentContent = await fsPromises.readFile(path.join(pathComponents, `${component.name}`), 'utf-8');
+            const fileName = path.basename(`${pathComponents}${path.sep}${component.name}`, path.extname(component.name));
             console.log(fileName);
             const regExp = new RegExp(`{{${fileName}}}`, 'g');
             newHTML = newHTML.replace(regExp, componentContent);
         }
-        fsPromises.writeFile(pathTemplate, newHTML);
-    });
+    }
+
+    console.log(newHTML);
+    fsPromises.writeFile(pathTemplate, newHTML);
 };
 
 createFolder(path.join(__dirname, 'project-dist'))
     .then(createFolders('assets'))
     .then(bundleCss(path.join(__dirname, 'project-dist', 'style.css'), path.join(__dirname, 'styles')))
     .then(copyTemplate(path.join(__dirname, 'project-dist', 'index.html'), path.join(__dirname, 'template.html')))
-    .then(addComponents(path.join(__dirname, 'project-dist', 'index.html'), path.join(__dirname, 'components')));
+    .then(addComponents(path.join(__dirname, 'template.html'), path.join(__dirname, 'project-dist', 'index.html'), path.join(__dirname, 'components')));
 
 
